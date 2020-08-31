@@ -2,7 +2,7 @@
 
 set -e
 
-npm vue-cli-service build
+npm run build
 
 cd dist
 
