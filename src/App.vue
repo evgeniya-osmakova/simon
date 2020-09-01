@@ -1,16 +1,15 @@
 <template>
   <div class="container">
     <h1 class="header">Simon Says</h1>
+    <span class="round" v-bind:style="isNewRoundStart">New round!</span>
     <div class="simon">
       <ul>
         <li class="red" v-on:click="checkPermission($event.target.dataset)"
-
             v-bind:class="{ hoverable: this.state === 'playerTurn' }"
             v-bind:style="redIsActivated" data-color="red"></li>
         <li class="blue" v-on:click="checkPermission($event.target.dataset)"
             v-bind:class="{ hoverable: this.state === 'playerTurn' }"
             v-bind:style="blueIsActivated" data-color="blue"></li>
-        <li class="round" v-bind:style="isNewRoundStart">New round!</li>
         <li class="yellow" v-on:click="checkPermission($event.target.dataset)"
             v-bind:class="{ hoverable: this.state === 'playerTurn' }"
             v-bind:style="yellowIsActivated" data-color="yellow"></li>
@@ -98,8 +97,8 @@ export default {
         return '';
       }
       return `<audio autoplay>
-        <source src="http://www.kellyking.me/projects/simon/sounds/${this.currentColor}.ogg" type="audio/ogg">
-        <source src="http://www.kellyking.me/projects/simon/sounds/${this.currentColor}.mp3" type="audio/mp3">
+        <source src="https://raw.githubusercontent.com/evgeniya-osmakova/simon/master/src/assets/${this.currentColor}.ogg" type="audio/ogg">
+        <source src="https://raw.githubusercontent.com/evgeniya-osmakova/simon/master/src/assets/${this.currentColor}.mp3" type="audio/mp3">
       </audio>`;
     },
     isBtnDisable() {
@@ -239,9 +238,9 @@ export default {
 <style>
   .container {
     display: grid;
-    grid-template-areas: "header header" "simon info" "simon options" "footer footer";
+    grid-template-areas: "header header" "round round" "simon info" "simon options" "footer footer";
     grid-template-columns: 6fr 4fr;
-    grid-template-rows: 1fr 2fr 6fr 1fr;
+    grid-template-rows: 1fr 1fr 2fr 5fr 1fr;
   }
 
   .header {
@@ -255,7 +254,6 @@ export default {
     background: #fff;
     margin-left: auto;
     margin-right: 100px;
-    margin-top: 60px;
     width: 302px;
     height: 295px;
     border-radius: 150px 150px 150px 150px;
@@ -287,10 +285,11 @@ export default {
   }
 
   .round {
-    position: absolute;
-    top: 250px;
-    left: 600px;
-    width: 100%;
+    font-weight: bold;
+    margin-top: 60px;
+    margin-left: auto;
+    margin-right: auto;
+    grid-area: round;
   }
 
   .red, .blue, .yellow, .green {
