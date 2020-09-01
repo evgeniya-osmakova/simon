@@ -13,7 +13,9 @@
     "url": "git+https://github.com/evgeniya-osmakova/simon.git"
   },
   "keywords": [
-    "logic", "game", "simon"
+    "logic",
+    "game",
+    "simon"
   ],
   "author": "Evgeniya Osmakova",
   "bugs": {
@@ -21,12 +23,18 @@
   },
   "homepage": "https://github.com/evgeniya-osmakova/simon#readme",
   "dependencies": {
+    "core-js": "^3.6.5",
     "vue": "^2.6.11"
   },
   "devDependencies": {
     "@vue/cli-plugin-eslint": "~4.5.0",
     "@vue/cli-service": "^4.5.4",
+    "@vue/cli-plugin-babel": "^4.5.4",
+    "babel-eslint": "^10.1.0",
+    "@vue/eslint-config-airbnb": "^5.1.0",
     "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2"
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-vue": "^6.2.2",
+    "vue-template-compiler": "^2.6.12"
   }
 }

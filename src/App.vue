@@ -46,8 +46,8 @@
         <label for="user-data-light-only">Light Only</label>
       </div>
       <div>
-        <input id="user-data-free-board" v-on:click="changeMode($event.target.value)"
-               type="radio" name="mode" value="free-board" v-bind:disabled="this.state === 'simonTurn'" >
+        <input id="user-data-free-board" v-on:click="changeMode($event.target.value)" type="radio"
+               name="mode" value="free-board" v-bind:disabled="this.state === 'simonTurn'" >
         <label for="user-data-free-board">Free board</label>
       </div>
       <h2>Game Speed:</h2>
@@ -74,165 +74,167 @@
 </template>
 
 <script>
-  export default {
-    name: 'App',
-    data() {
-      return {
-        state: 'beforeStart',
-        speed: 1500,
-        mode: 'normal',
-        round: 0,
-        currentTask: [],
-        currentColor: '',
-        currentCorrectAnswerIndex: 0,
-        isPlayerAnswerCorrect: true,
-        pause: 400,
-        newRound: false,
+export default {
+  name: 'App',
+  data() {
+    return {
+      state: 'beforeStart',
+      speed: 1500,
+      mode: 'normal',
+      round: 0,
+      currentTask: [],
+      currentColor: '',
+      currentCorrectAnswerIndex: 0,
+      isPlayerAnswerCorrect: true,
+      pause: 400,
+      newRound: false,
 
+    };
+  },
+  computed: {
+    audio() {
+      if (this.mode === 'light-only') {
+        return '';
+      }
+      const mapping = {
+        red: '1',
+        blue: '2',
+        yellow: '3',
+        green: '4',
+      };
+      const code = mapping[this.currentColor];
+      return `<audio autoplay>
+        <source src="http://www.kellyking.me/projects/simon/sounds/${code}.ogg" type="audio/ogg">
+        <source src="http://www.kellyking.me/projects/simon/sounds/${code}.mp3" type="audio/mp3">
+      </audio>`;
+    },
+    isBtnDisable() {
+      switch (this.state) {
+        case 'beforeStart': {
+          return false;
+        }
+        case 'simonTurn': {
+          return true;
+        }
+        case 'playerTurn': {
+          return this.mode === 'free-board';
+        }
+        case 'losing': {
+          return false;
+        }
+        default:
+          throw new Error(`Unknown game state ${this.state}`);
       }
     },
-    computed: {
-      audio() {
-        if (this.mode === 'light-only') {
-          return '';
-        }
-        const mapping = {
-          'red': '1',
-          'blue': '2',
-          'yellow': '3',
-          'green': '4',
-        }
-        const code = mapping[this.currentColor];
-        return `<audio autoplay>
-          <source src="http://www.kellyking.me/projects/simon/sounds/${code}.ogg" type="audio/ogg">
-          <source src="http://www.kellyking.me/projects/simon/sounds/${code}.mp3" type="audio/mp3">
-        </audio>`;
-      },
-      isBtnDisable() {
-        switch (this.state) {
-          case 'beforeStart': {
-            return false;
-          }
-          case 'simonTurn': {
-            return true;
-          }
-          case 'playerTurn': {
-            return this.mode === 'free-board';
-          }
-          case 'losing': {
-            return false;
-          }
-          default:
-            throw new Error(`Unknown game state ${this.state}`);
-        }
-      },
-      isNewRoundStart() {
-        return (this.newRound) ? 'display: block' : 'display: none';
-      },
-      toggledFailedDisplay() {
-        return ( this.state === 'losing') ? 'display: block' : 'display: none';
-      },
-      redIsActivated() {
-        return (this.currentColor === "red" && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
-      },
-      blueIsActivated() {
-        return (this.currentColor === "blue" && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
-      },
-      yellowIsActivated() {
-        return (this.currentColor === "yellow" && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
-      },
-      greenIsActivated() {
-        return (this.currentColor === "green" && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
-      },
+    isNewRoundStart() {
+      return (this.newRound) ? 'display: block' : 'display: none';
     },
-    methods: {
-      resetSettings() {
-        this.state = 'simonTurn';
-        this.round = 0;
-        this.currentTask = [];
-        this.currentColor = '';
-        this.currentCorrectAnswerIndex = 0;
-        this.isPlayerAnswerCorrect = true;
-      },
-      onStart() {
-        if (this.mode !== 'free-board') {
-          this.resetSettings();
-          this.generateTask();
-        }
-      },
-      generateTask() {
-        this.newRound = true
-        this.round += 1;
-        const colors = ['red', 'blue', 'yellow', 'green'];
-        this.currentTask.push(colors[Math.floor(Math.random() * colors.length)]);
-        this.executeTask();
-      },
-      executeTask() {
-        const changeColor = (colors) => {
-          if (colors.length === 0) {
-            this.state = 'playerTurn';
-            return this.currentColor = '';
-          }
-          this.currentColor = '';
-          setTimeout(() => {
-            const [first, ...rest] = colors;
-            this.currentColor = first;
-            setTimeout(() => changeColor(rest), this.speed);
-          }, this.pause);
-        }
-
-        setTimeout(() => {
-          this.newRound = false
-          changeColor(this.currentTask);
-        }, this.speed);
-      },
-      checkPermission(value) {
-        (this.state === 'playerTurn') ? this.checkPlayerAnswer(value) : this.currentColor = '';
-      },
-      checkPlayerAnswer(value) {
-        const { color } = value;
-        this.currentColor = color;
-        setTimeout(() => {
-          this.currentColor = '';
-          if (this.mode !== 'free-board') {
-            const correctAnswer = this.currentTask[this.currentCorrectAnswerIndex];
-            if (correctAnswer === color) {
-              this.isPlayerAnswerCorrect = true;
-              (this.currentCorrectAnswerIndex < this.currentTask.length - 1)
-                      ? this.currentCorrectAnswerIndex += 1
-                      : this.updateRound();
-            } else {
-              this.isPlayerAnswerCorrect = false;
-              this.state = 'losing';
-            }
-          }
-        }, this.pause);
-      },
-      changeMode(mode) {
-        if (this.mode === 'free-board') {
-          this.state = 'beforeStart';
-        }
-        this.mode = mode;
-        if (this.mode === 'free-board') {
-          this.resetSettings();
-          this.state = 'playerTurn';
-        }
-      },
-      updateRound() {
-        this.currentCorrectAnswerIndex = 0;
-        this.state = 'simonTurn';
+    toggledFailedDisplay() {
+      return (this.state === 'losing') ? 'display: block' : 'display: none';
+    },
+    redIsActivated() {
+      return (this.currentColor === 'red' && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
+    },
+    blueIsActivated() {
+      return (this.currentColor === 'blue' && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
+    },
+    yellowIsActivated() {
+      return (this.currentColor === 'yellow' && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
+    },
+    greenIsActivated() {
+      return (this.currentColor === 'green' && this.mode !== 'sound-only') ? 'opacity: 1;' : 'opacity: 0.6;';
+    },
+  },
+  methods: {
+    resetSettings() {
+      this.state = 'simonTurn';
+      this.round = 0;
+      this.currentTask = [];
+      this.currentColor = '';
+      this.currentCorrectAnswerIndex = 0;
+      this.isPlayerAnswerCorrect = true;
+    },
+    onStart() {
+      if (this.mode !== 'free-board') {
+        this.resetSettings();
         this.generateTask();
-      },
-      changeSpeed(speed) {
-        const speedValue = {
-          low: 1500,
-          medium: 1000,
-          high: 400,
-        };
-        this.speed = speedValue[speed];
       }
     },
-  }
+    generateTask() {
+      this.newRound = true;
+      this.round += 1;
+      const colors = ['red', 'blue', 'yellow', 'green'];
+      this.currentTask.push(colors[Math.floor(Math.random() * colors.length)]);
+      this.executeTask();
+    },
+    executeTask() {
+      const changeColor = (colors) => {
+        if (colors.length === 0) {
+          this.state = 'playerTurn';
+          this.currentColor = '';
+        }
+        this.currentColor = '';
+        setTimeout(() => {
+          const [first, ...rest] = colors;
+          this.currentColor = first;
+          setTimeout(() => changeColor(rest), this.speed);
+        }, this.pause);
+      };
+
+      setTimeout(() => {
+        this.newRound = false;
+        changeColor(this.currentTask);
+      }, this.speed);
+    },
+    checkPermission(value) {
+      // eslint-disable-next-line no-unused-expressions
+      (this.state === 'playerTurn') ? this.checkPlayerAnswer(value) : this.currentColor = '';
+    },
+    checkPlayerAnswer(value) {
+      const { color } = value;
+      this.currentColor = color;
+      setTimeout(() => {
+        this.currentColor = '';
+        if (this.mode !== 'free-board') {
+          const correctAnswer = this.currentTask[this.currentCorrectAnswerIndex];
+          if (correctAnswer === color) {
+            this.isPlayerAnswerCorrect = true;
+            // eslint-disable-next-line no-unused-expressions
+            (this.currentCorrectAnswerIndex < this.currentTask.length - 1)
+              ? this.currentCorrectAnswerIndex += 1
+              : this.updateRound();
+          } else {
+            this.isPlayerAnswerCorrect = false;
+            this.state = 'losing';
+          }
+        }
+      }, this.pause);
+    },
+    changeMode(mode) {
+      if (this.mode === 'free-board') {
+        this.state = 'beforeStart';
+      }
+      this.mode = mode;
+      if (this.mode === 'free-board') {
+        this.resetSettings();
+        this.state = 'playerTurn';
+      }
+    },
+    updateRound() {
+      this.currentCorrectAnswerIndex = 0;
+      this.state = 'simonTurn';
+      this.generateTask();
+    },
+    changeSpeed(speed) {
+      const speedValue = {
+        low: 1500,
+        medium: 1000,
+        high: 400,
+      };
+      this.speed = speedValue[speed];
+    },
+  },
+};
 </script>
 
 <style>
