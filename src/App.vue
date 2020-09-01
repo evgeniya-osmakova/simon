@@ -4,6 +4,7 @@
     <div class="simon">
       <ul>
         <li class="red" v-on:click="checkPermission($event.target.dataset)"
+
             v-bind:class="{ hoverable: this.state === 'playerTurn' }"
             v-bind:style="redIsActivated" data-color="red"></li>
         <li class="blue" v-on:click="checkPermission($event.target.dataset)"
@@ -20,7 +21,7 @@
     </div>
     <div class="game-info">
       <h2>Round: <span>{{ isPlayerAnswerCorrect ? round : 0}}</span></h2>
-      <button class="button" v-bind:class="{ hoverable: !isBtnDisable }"
+      <button v-bind:class="{ hoverable: !isBtnDisable }"
               v-bind:disabled="isBtnDisable" v-on:click="onStart">Start</button>
       <p v-bind:style="toggledFailedDisplay">
         Sorry, you lost after
@@ -67,7 +68,7 @@
         <label for="user-data-free-high">High</label>
       </div>
     </div>
-    <div data-action="sound">
+    <div>
       <span v-html="audio"></span>
     </div>
   </div>
@@ -93,19 +94,12 @@ export default {
   },
   computed: {
     audio() {
-      if (this.mode === 'light-only') {
+      if (this.mode === 'light-only' || this.currentColor === '') {
         return '';
       }
-      const mapping = {
-        red: '1',
-        blue: '2',
-        yellow: '3',
-        green: '4',
-      };
-      const code = mapping[this.currentColor];
       return `<audio autoplay>
-        <source src="http://www.kellyking.me/projects/simon/sounds/${code}.ogg" type="audio/ogg">
-        <source src="http://www.kellyking.me/projects/simon/sounds/${code}.mp3" type="audio/mp3">
+        <source src="http://www.kellyking.me/projects/simon/sounds/${this.currentColor}.ogg" type="audio/ogg">
+        <source src="http://www.kellyking.me/projects/simon/sounds/${this.currentColor}.mp3" type="audio/mp3">
       </audio>`;
     },
     isBtnDisable() {
@@ -147,7 +141,6 @@ export default {
   },
   methods: {
     resetSettings() {
-      this.state = 'simonTurn';
       this.round = 0;
       this.currentTask = [];
       this.currentColor = '';
@@ -161,6 +154,7 @@ export default {
       }
     },
     generateTask() {
+      this.state = 'simonTurn';
       this.newRound = true;
       this.round += 1;
       const colors = ['red', 'blue', 'yellow', 'green'];
@@ -172,6 +166,7 @@ export default {
         if (colors.length === 0) {
           this.state = 'playerTurn';
           this.currentColor = '';
+          return;
         }
         this.currentColor = '';
         setTimeout(() => {
@@ -187,26 +182,31 @@ export default {
       }, this.speed);
     },
     checkPermission(value) {
-      // eslint-disable-next-line no-unused-expressions
-      (this.state === 'playerTurn') ? this.checkPlayerAnswer(value) : this.currentColor = '';
+      if (this.state === 'playerTurn') {
+        this.checkPlayerAnswer(value);
+      } else {
+        this.currentColor = '';
+      }
     },
     checkPlayerAnswer(value) {
       const { color } = value;
       this.currentColor = color;
       setTimeout(() => {
         this.currentColor = '';
-        if (this.mode !== 'free-board') {
-          const correctAnswer = this.currentTask[this.currentCorrectAnswerIndex];
-          if (correctAnswer === color) {
-            this.isPlayerAnswerCorrect = true;
-            // eslint-disable-next-line no-unused-expressions
-            (this.currentCorrectAnswerIndex < this.currentTask.length - 1)
-              ? this.currentCorrectAnswerIndex += 1
-              : this.updateRound();
-          } else {
-            this.isPlayerAnswerCorrect = false;
-            this.state = 'losing';
-          }
+        if (this.mode === 'free-board') {
+          return;
+        }
+        const correctAnswer = this.currentTask[this.currentCorrectAnswerIndex];
+        if (correctAnswer !== color) {
+          this.isPlayerAnswerCorrect = false;
+          this.state = 'losing';
+          return;
+        }
+        this.isPlayerAnswerCorrect = true;
+        if (this.currentCorrectAnswerIndex < this.currentTask.length - 1) {
+          this.currentCorrectAnswerIndex += 1;
+        } else {
+          this.updateRound();
         }
       }, this.pause);
     },
@@ -222,7 +222,6 @@ export default {
     },
     updateRound() {
       this.currentCorrectAnswerIndex = 0;
-      this.state = 'simonTurn';
       this.generateTask();
     },
     changeSpeed(speed) {
@@ -307,28 +306,8 @@ export default {
     margin: 0;
   }
 
-  .red hoverable:hover {
+  .hoverable:hover {
     cursor: pointer;
-    border: 2px solid black;
-  }
-  .blue hoverable:hover {
-    cursor: pointer;
-    border: 2px solid black;
-  }
-  .yellow hoverable:hover {
-    cursor: pointer;
-    border: 2px solid black;
-  }
-  .green hoverable:hover {
-    cursor: pointer;
-    border: 2px solid black;
-  }
-  .button hoverable:hover {
-    cursor: pointer;
-    border: 2px solid black;
-  }
-
-  .game-info button hoverable:hover {
     border: 2px solid black;
   }
 
