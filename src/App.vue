@@ -19,7 +19,7 @@
       </ul>
     </div>
     <div class="game-info">
-      <h2>Round: <span>{{ isPlayerAnswerCorrect ? round : 0}}</span></h2>
+      <h2>Round: <span>{{ state !== 'losing' ? round : 0}}</span></h2>
       <button v-bind:class="{ hoverable: !isBtnDisable }"
               v-bind:disabled="isBtnDisable" v-on:click="onStart">Start</button>
       <p v-bind:style="toggledFailedDisplay">
@@ -47,7 +47,8 @@
       </div>
       <div>
         <input id="user-data-free-board" v-on:click="changeMode($event.target.value)" type="radio"
-               name="mode" value="free-board" v-bind:disabled="this.state === 'simonTurn'" >
+               name="mode" value="free-board"
+               v-bind:disabled="this.state === 'simonTurn' || this.state === 'newRound'" >
         <label for="user-data-free-board">Free board</label>
       </div>
       <h2>Game Speed:</h2>
@@ -85,10 +86,8 @@ export default {
       currentTask: [],
       currentColor: '',
       currentCorrectAnswerIndex: 0,
-      isPlayerAnswerCorrect: true,
       pause: 400,
       newRound: false,
-
     };
   },
   computed: {
@@ -106,6 +105,9 @@ export default {
         case 'beforeStart': {
           return false;
         }
+        case 'newRound': {
+          return true;
+        }
         case 'simonTurn': {
           return true;
         }
@@ -120,7 +122,7 @@ export default {
       }
     },
     isNewRoundStart() {
-      return (this.newRound) ? 'display: block' : 'display: none';
+      return (this.state === 'newRound') ? 'display: block' : 'display: none';
     },
     toggledFailedDisplay() {
       return (this.state === 'losing') ? 'display: block' : 'display: none';
@@ -144,7 +146,6 @@ export default {
       this.currentTask = [];
       this.currentColor = '';
       this.currentCorrectAnswerIndex = 0;
-      this.isPlayerAnswerCorrect = true;
     },
     onStart() {
       if (this.mode !== 'free-board') {
@@ -153,8 +154,7 @@ export default {
       }
     },
     generateTask() {
-      this.state = 'simonTurn';
-      this.newRound = true;
+      this.state = 'newRound';
       this.round += 1;
       const colors = ['red', 'blue', 'yellow', 'green'];
       this.currentTask.push(colors[Math.floor(Math.random() * colors.length)]);
@@ -162,12 +162,11 @@ export default {
     },
     executeTask() {
       const changeColor = (colors) => {
+        this.currentColor = '';
         if (colors.length === 0) {
           this.state = 'playerTurn';
-          this.currentColor = '';
           return;
         }
-        this.currentColor = '';
         setTimeout(() => {
           const [first, ...rest] = colors;
           this.currentColor = first;
@@ -176,7 +175,7 @@ export default {
       };
 
       setTimeout(() => {
-        this.newRound = false;
+        this.state = 'simonTurn';
         changeColor(this.currentTask);
       }, this.speed);
     },
@@ -197,11 +196,9 @@ export default {
         }
         const correctAnswer = this.currentTask[this.currentCorrectAnswerIndex];
         if (correctAnswer !== color) {
-          this.isPlayerAnswerCorrect = false;
           this.state = 'losing';
           return;
         }
-        this.isPlayerAnswerCorrect = true;
         if (this.currentCorrectAnswerIndex < this.currentTask.length - 1) {
           this.currentCorrectAnswerIndex += 1;
         } else {
