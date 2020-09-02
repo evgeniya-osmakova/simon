@@ -87,7 +87,6 @@ export default {
       currentColor: '',
       currentCorrectAnswerIndex: 0,
       pause: 400,
-      newRound: false,
     };
   },
   computed: {
